@@ -1,0 +1,46 @@
+rem
+rem     Script:         dbms_sqltune_02.sql
+rem     Author:         Jonathan Lewis
+rem     Dated:          March 2004
+rem
+rem     Updated (Sep 2021):        
+rem             attr1 is for 10g, attr5 is for 11g+
+rem             report only the SQL Profile recommendation
+rem
+ 
+set linesize 180
+set pagesize  60
+set trimspool on
+ 
+column attr      format a80
+column rat_type  format a20
+column rec_type  format a20
+ 
+break on task_id on rec_id skip 1
+select
+        rat.task_id,
+        rat.rec_id,
+--      rat.type        rat_type,
+        rec.type        rec_type,
+        rat.obj_id,
+        nvl(attr1,attr5)        attr
+from
+        sys.wri$_adv_tasks            tsk,
+        sys.wri$_adv_rationale        rat,
+        sys.wri$_adv_recommendations  rec
+where
+        tsk.name    = {sql tuning task name}
+and     rat.task_id = tsk.id
+and     rec.task_id = rat.task_id
+and     rec.id      = rat.rec_id
+and     rat.type    = 'RECOMMENDATION'
+and     rec.type    in ( 
+                        'SQL PROFILE',
+                        'PARALLEL EXECUTION',
+                        'EXADATA AWARE SQL PROFILE'
+        )
+order by
+        rat.task_id,
+        rat.rec_id,
+        rat.id
+/
