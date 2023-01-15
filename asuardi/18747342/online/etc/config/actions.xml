@@ -1,0 +1,5 @@
+<oneoff_actions>
+    <oracle.rdbms version="11.2.0.4.0" opt_req="O">
+        <hotpatch name="18747342" object_name="lib/libserver11.a/kkqvm.o" modified_function="kkqvmCheckValidSVM" filename="hpatch/bug18747342.pch" path="%ORACLE_HOME%/hpatch" mkpatch_param=""/>
+    </oracle.rdbms>
+</oneoff_actions>

@@ -1,0 +1,6 @@
+<oneoff_actions>
+    <oracle.rdbms version="11.2.0.4.0" opt_req="O">
+        <archive name="libserver11.a" path="%ORACLE_HOME%/lib" object_name="lib/libserver11.a/kkqvm.o"/>
+        <make change_dir="%ORACLE_HOME%/rdbms/lib" make_file="ins_rdbms.mk" make_target="ioracle"/>
+    </oracle.rdbms>
+</oneoff_actions>

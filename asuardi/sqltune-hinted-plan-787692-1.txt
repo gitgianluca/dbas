@@ -1,0 +1,60 @@
+This note will show how to create SQL Plan Baseline for
+
+- SQL coming from an application where the SQL can't be modified
+- SQL need hints to run a good execution plan
+
+Please note that PLAN_HASH_VALUE is different than HASH_VALUE for the SQL
+
+In the following section , PLAN_HASH_VALUE is only used and not HASH_VALUE
+Solution
+
+1- Capture sql plan baseline for the original SQL .
+
+var res number ;
+exec :res := dbms_spm.load_plans_from_cursor_cache(sql_id => '&original_sql_id', plan_hash_value => '&original_plan_hash_value' );
+
+
+2- Execute the hinted SQL.
+
+3- Find the SQL_ID and plan_hash_value from V$SQL or directly running this command after the SQL is successfully completed ( keep note of the SQL_ID and plan_hash_value for the hinted SQL , these will be used at step5)
+
+select * from table(dbms_xplan.display_cursor);
+
+
+4- Verify original SQL baseline exist . ( keep note of the sql_handle for the original SQL, will be used in step5 )
+
+select sql_text, sql_handle, plan_name, enabled, accepted from dba_sql_plan_baselines;
+
+
+5- Associate the hinted execution plan to the original sql_handle.
+
+var res number
+exec :res := dbms_spm.load_plans_from_cursor_cache( -
+sql_id => '&hinted_SQL_ID', -
+plan_hash_value => &hinted_plan_hash_value, -
+sql_handle => '&sql_handle_for_original');
+
+
+6- Verify the new baseline was added.
+
+select sql_text, sql_handle, plan_name, enabled, accepted from dba_sql_plan_baselines;
+
+
+7- If the original plan captured initially is not needed, it can be dropped, or disabled.
+
+exec :res :=DBMS_SPM.DROP_SQL_PLAN_BASELINE ('&original_sql_handle','&original_plan_name');
+
+
+8- Execute the SQL from application and verify that SQL is now using the the SQL Plan baseline, run the SQL against V$SQL
+
+select SQL_PLAN_BASELINE from V$SQL where SQL_ID='&original_SQL_ID'
+
+
+The hinted Plan that is loaded into the SPM repository is marked as acceptable and enabled
+and becomes part of sql plan baseline as it is manual load, so make sure to load
+well tuned and plans that has been well verified for performance.
+
+A test case is uploaded to this note which is implementing the steps above.
+
+Document 215187.1 SQLTXPLAIN offers a script ( ./utl/coe_load_sql_baseline.sql ) to automate the steps, review the script before running it
+
